@@ -1,7 +1,9 @@
+#player.py
+
 from hex_board import HexBoard
 from typing import Tuple
 from father_player import Player
-
+import heuristics as h
 
 class AI_Player(Player):
     def __init__(self, player_id: int, max_depth: int = 2):
@@ -17,6 +19,16 @@ class AI_Player(Player):
         possible_moves = board.get_possible_moves()
         if not possible_moves:
             return (-1, -1) 
+
+        # Verificar amenazas inmediatas
+        threat_status, block_move = h.detect_and_block_imminent_win(board, self.player_id)
+        if threat_status == 0:
+            return block_move  # Bloquea al oponente
+        elif threat_status == -1:
+            return block_move  # Demasiadas amenazas, simplemente bloquea una
+        elif threat_status == 1:
+            pass  # Nada urgente, busca movimientos ventajosos
+
 
         best_score = float('-inf')
         best_move = possible_moves[0]  # Fallback por si ningún movimiento mejora el score
