@@ -16,7 +16,7 @@ class AI_Player(Player):
         """
         possible_moves = board.get_possible_moves()
         if not possible_moves:
-            return float('-inf')  # el oponente ganó 
+            return (-1, -1) 
 
         best_score = float('-inf')
         best_move = possible_moves[0]  # Fallback por si ningún movimiento mejora el score
@@ -29,7 +29,7 @@ class AI_Player(Player):
             new_board.place_piece(row, col, self.player_id)
 
             # Llamamos a minimax desde el punto de vista del oponente
-            score = self.minimax(new_board, self.max_depth - 1, False)
+            score = self.minimax(new_board, self.max_depth - 1, False, float('-inf'), float('inf'))
 
             if score > best_score:
                 best_score = score
@@ -37,9 +37,9 @@ class AI_Player(Player):
 
         return best_move
 
-    def minimax(self, board: HexBoard, depth: int, is_maximizing: bool) -> float:
+    def minimax(self, board: HexBoard, depth: int, is_maximizing: bool, alpha: float, beta: float) -> float:
         """
-        Algoritmo Minimax sin poda.
+        Algoritmo Minimax con poda Alpha-Beta.
         """
         # Condiciones terminales
         if board.check_connection(self.player_id):
@@ -50,23 +50,30 @@ class AI_Player(Player):
             return self.evaluate_board(board)
 
         if is_maximizing:
-            best_score = float('-inf')
+            max_eval = float('-inf')
             for move in board.get_possible_moves():
                 row, col = move
                 new_board = board.clone()
-                new_board.place_piece(row, col, self.player_id)
-                score = self.minimax(new_board, depth - 1, False)
-                best_score = max(best_score, score)
-            return best_score
+                new_board.place_piece(row, col, self.player_id)     # simular jugada propia
+                eval = self.minimax(new_board, depth - 1, False, alpha, beta)   # probar siguiente jugada
+                max_eval = max(max_eval, eval)
+                alpha = max(alpha, eval)
+                if beta <= alpha:
+                    break  # poda beta
+            return max_eval
         else:
-            best_score = float('inf')
+            min_eval = float('inf')
             for move in board.get_possible_moves():
                 row, col = move
                 new_board = board.clone()
-                new_board.place_piece(row, col, self.opponent_id)
-                score = self.minimax(new_board, depth - 1, True)
-                best_score = min(best_score, score)
-            return best_score
+                new_board.place_piece(row, col, self.opponent_id)   # simular jugada del contrincante
+                eval = self.minimax(new_board, depth - 1, True, alpha, beta)    # probar siguiente jugada
+                min_eval = min(min_eval, eval)
+                beta = min(beta, eval)
+                if beta <= alpha:
+                    break  # poda alpha
+            return min_eval
+
 
     def evaluate_board(self, board: HexBoard) -> float:
         """
