@@ -26,9 +26,7 @@ class AI_Player(Player):
             return block_move  # Bloquea al oponente
         elif threat_status == -1:
             return block_move  # Demasiadas amenazas, simplemente bloquea una
-        elif threat_status == 1:
-            pass  # Nada urgente, busca movimientos ventajosos
-
+        
 
         best_score = float('-inf')
         best_move = possible_moves[0]  # Fallback por si ningún movimiento mejora el score
@@ -59,7 +57,7 @@ class AI_Player(Player):
         elif board.check_connection(self.opponent_id):
             return float('-inf')  # el oponente ganó
         elif depth == 0 or len(board.get_possible_moves()) == 0:
-            return self.evaluate_board(board)
+            return h.evaluate_board(self.player_id, self.opponent_id, board)
 
         if is_maximizing:
             max_eval = float('-inf')
@@ -86,11 +84,3 @@ class AI_Player(Player):
                     break  # poda alpha
             return min_eval
 
-
-    def evaluate_board(self, board: HexBoard) -> float:
-        """
-        Heurística inicial: simplemente restamos el número de piezas del oponente.
-        """
-        own_count = sum(row.count(self.player_id) for row in board.board)
-        opp_count = sum(row.count(self.opponent_id) for row in board.board)
-        return own_count - opp_count

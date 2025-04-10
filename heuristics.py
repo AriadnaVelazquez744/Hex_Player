@@ -31,3 +31,68 @@ def detect_and_block_imminent_win(board: HexBoard, ai_id: int) -> tuple[int, tup
     if len(threat_moves) == 1:
         return (0, threat_moves[0])  # Único movimiento que permite bloquear
     return (1, None)  # No hay amenazas detectadas
+
+def shortest_path_length(board: HexBoard, player_id: int) -> int:
+    """
+    Calcula la distancia mínima para que el jugador conecte sus lados usando Dijkstra.
+    """
+    size = board.size
+    start_nodes = []
+    target = None
+
+    if player_id == 1:
+        start_nodes = [(0, col) for col in range(size) if board.board[0][col] == player_id]
+        target = lambda row, _: row == size - 1  # Conectar hasta la última fila
+    else:
+        start_nodes = [(row, 0) for row in range(size) if board.board[row][0] == player_id]
+        target = lambda _, col: col == size - 1  # Conectar hasta la última columna
+
+    if not start_nodes:
+        return float('inf')  # Si no hay inicio, retornar infinito
+
+    import heapq
+    heap = []
+    visited = {}
+
+    # Inicializar nodos de inicio
+    for (row, col) in start_nodes:
+        heapq.heappush(heap, (0, row, col))
+        visited[(row, col)] = 0
+
+    directions = [(-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0)]
+
+    while heap:
+        cost, row, col = heapq.heappop(heap)
+        if target(row, col):
+            return cost
+
+        for dr, dc in directions:
+            new_row, new_col = row + dr, col + dc
+            if 0 <= new_row < size and 0 <= new_col < size:
+                cell = board.board[new_row][new_col]
+                new_cost = cost
+
+                if cell == 3 - player_id:
+                    continue  # Celda del oponente, no accesible
+                elif cell == 0:
+                    new_cost += 1  # Celda vacía: costo 1
+
+                if (new_row, new_col) not in visited or new_cost < visited.get((new_row, new_col), float('inf')):
+                    visited[(new_row, new_col)] = new_cost
+                    heapq.heappush(heap, (new_cost, new_row, new_col))
+
+    return float('inf')  # No hay camino
+
+def evaluate_board(player_id, opponent_id, board: HexBoard) -> float:
+    own_count = sum(row.count(player_id) for row in board.board)
+    opp_count = sum(row.count(opponent_id) for row in board.board)
+    piece_diff = own_count - opp_count
+
+    # Obtener distancias de ruta
+    ai_path = shortest_path_length(board, player_id)
+    opp_path = shortest_path_length(board, opponent_id)
+    path_diff = opp_path - ai_path  # Mayor es mejor
+
+    # Ponderar la diferencia de rutas más que la de piezas
+    return path_diff * 20 + piece_diff * 1
+
