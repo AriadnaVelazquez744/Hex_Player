@@ -1,5 +1,5 @@
 # heuristics.py
-from hex_board import HexBoard
+from board import HexBoard
 
 def detect_and_block_imminent_win(board: HexBoard, ai_id: int) -> tuple[int, tuple | None]:
     """

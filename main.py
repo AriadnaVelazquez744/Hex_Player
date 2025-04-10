@@ -1,5 +1,5 @@
 import os
-from hex_board import HexBoard
+from board import HexBoard
 from player import AI_Player
 
 

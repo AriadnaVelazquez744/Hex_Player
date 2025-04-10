@@ -1,6 +1,6 @@
 #player.py
 
-from hex_board import HexBoard
+from board import HexBoard
 from typing import Tuple
 from father_player import Player
 import heuristics as h
