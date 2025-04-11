@@ -10,12 +10,17 @@ class AI_Player(Player):
         super().__init__(player_id)
         self.opponent_id = 3 - player_id  # Si eres 1, el oponente es 2; si eres 2, el oponente es 1
         self.max_depth = max_depth
+        self.first_move = True
 
     def play(self, board: HexBoard) -> Tuple[int, int]:
         """
         Método principal que el framework llamará para obtener el movimiento del jugador AI.
         Usa minimax hasta una profundidad determinada.
         """
+        if self.first_move and h.es_tablero_vacio(self.player_id ,board):
+            self.first_move = False
+            return h.elegir_apertura(self.player_id, board, board.size)
+
         possible_moves = board.get_possible_moves()
         if not possible_moves:
             return (-1, -1) 
@@ -26,10 +31,27 @@ class AI_Player(Player):
             return block_move  # Bloquea al oponente
         elif threat_status == -1:
             return block_move  # Demasiadas amenazas, simplemente bloquea una
-        
 
         best_score = float('-inf')
         best_move = possible_moves[0]  # Fallback por si ningún movimiento mejora el score
+
+        # Priorizar puentes entre grupos
+        puentes = h.detectar_puentes(board, self.player_id)
+        if puentes:
+            # Ordenar puentes por puntuación descendente
+            puentes_ordenados = sorted(puentes, key=lambda x: x[1], reverse=True)
+            possible_moves = [move for (move, _) in puentes_ordenados]
+
+        # Ordenar por heurística combinada (CORRECCIÓN)
+        scores = []
+        for move in possible_moves:
+            new_board = board.clone()  # Clonar el tablero
+            new_board.place_piece(*move, self.player_id)  # Modificar el clon
+            score = h.evaluate_board(self.player_id, self.opponent_id, new_board)  # Pasar el clon
+            scores.append((move, score))
+        
+        possible_moves.sort(key=lambda x: -x[1])  # Ordenar por score descendente
+
 
         for move in possible_moves:
             row, col = move
