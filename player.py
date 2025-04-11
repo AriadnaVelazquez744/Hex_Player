@@ -48,7 +48,7 @@ class AI_Player(Player):
             # Conectar con vecinos en el clon
             for di, dj in [(-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0)]:
                 ni, nj = move[0] + di, move[1] + dj
-                if 0 <= ni < new_board.size and 0 <= nj < new_board.size and new_board.board[ni][nj] == self.player_id:
+                if h.es_posicion_valida((ni, nj), new_board.size) and new_board.board[ni][nj] == self.player_id:
                     ds_clon.merge(move, (ni, nj))
             score = h.evaluate_board(self.player_id, self.opponent_id, new_board, ds_clon)
             scores.append((move, score))
@@ -94,7 +94,7 @@ class AI_Player(Player):
                 ds_clon.add(move)
                 for di, dj in [(-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0)]:
                     ni, nj = move[0] + di, move[1] + dj
-                    if new_board.board[ni][nj] == self.player_id:
+                    if h.es_posicion_valida((ni, nj), new_board.size) and new_board.board[ni][nj] == self.player_id:
                         ds_clon.merge(move, (ni, nj))
                 eval = self.minimax(new_board, depth-1, False, alpha, beta, ds_clon, ds_oponente)
                 max_eval = max(max_eval, eval)
@@ -108,12 +108,12 @@ class AI_Player(Player):
             for move in board.get_possible_moves():
                 row, col = move
                 new_board = board.clone()
-                new_board.place_piece(row, col, self.opponent_id)   # simular jugada del contrincante
+                new_board.place_piece(move[0], move[1], self.opponent_id)   # simular jugada del contrincante
                 ds_clon = h.clonar_disjointset(ds_oponente)
                 ds_clon.add(move)
                 for di, dj in [(-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0)]:
                     ni, nj = move[0] + di, move[1] + dj
-                    if new_board.board[ni][nj] == self.opponent_id:
+                    if h.es_posicion_valida((ni, nj), new_board.size) and new_board.board[ni][nj] == self.opponent_id:
                         ds_clon.merge(move, (ni, nj))
                 eval = self.minimax(new_board, depth-1, True, alpha, beta, ds_jugador, ds_clon)
                 min_eval = min(min_eval, eval)

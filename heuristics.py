@@ -97,21 +97,6 @@ def strategic_direction(board: HexBoard, player_id: int, ds: DisjointSet) -> tup
 
     return distancias, pesos
 
-
-# def evaluate_board(player_id: int, opponent_id: int, board: HexBoard) -> float:
-#     board_np = np.array(board.board)
-    
-#     # Componentes clave
-#     direction = strategic_direction(board, player_id)
-#     puentes = sum(score for (_, score) in detectar_puentes(board, player_id))
-#     fronteras = np.sum(board_np == 0)  # Priorizar expansión
-
-#     # Penalizar dispersión (fichas aisladas)
-#     densidad = np.mean(board_np == player_id) * 10  + 1  # Evitar división por cero
-#     dispersion = 1 / densidad  # Menor es mejor
-
-#     return (direction * 0.5) + (puentes * 0.3) + (fronteras * 0.2) - dispersion
-
 def evaluate_board(player_id: int, opponent_id: int, board: HexBoard, ds: DisjointSet) -> float:
     size = board.size
     board_np = np.array(board.board)
@@ -150,25 +135,30 @@ def obtener_disjointsets(board: HexBoard, player_id: int) -> DisjointSet:
     """Crea un DisjointSet con las fichas del jugador."""
     ds = DisjointSet()
     size = board.size
+    # Primero agregar todas las celdas del jugador al DisjointSet
     for i in range(size):
         for j in range(size):
             if board.board[i][j] == player_id:
                 ds.add((i, j))
+    # Luego, conectar las celdas con sus vecinos
+    for i in range(size):
+        for j in range(size):
+            if board.board[i][j] == player_id:
                 for di, dj in [(-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0)]:
                     ni, nj = i + di, j + dj
-                    if 0 <= ni < size and 0 <= nj < size and board.board[ni][nj] == player_id:
+                    if es_posicion_valida((ni, nj), size) and board.board[ni][nj] == player_id:
                         ds.merge((i, j), (ni, nj))
     return ds
 
 def detectar_puentes(board: HexBoard, player_id: int, ds: DisjointSet) -> list:
-    """Detecta puentes usando el DisjointSet precalculado."""
+    """Detecta puentes usando el DisjointSet pre-calculado."""
     puentes = []
     for move in board.get_possible_moves():
         grupos_conectados = set()
         for di, dj in [(-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0)]:
             ni, nj = move[0] + di, move[1] + dj
             # Verificar si la celda es del jugador y está en el DisjointSet
-            if 0 <= ni < board.size and 0 <= nj < board.size and board.board[ni][nj] == player_id:
+            if es_posicion_valida((ni, nj), board.size) and board.board[ni][nj] == player_id:
                 try:
                     grupos_conectados.add(ds.__getitem__((ni, nj)))
                 except KeyError:
@@ -176,3 +166,8 @@ def detectar_puentes(board: HexBoard, player_id: int, ds: DisjointSet) -> list:
         if len(grupos_conectados) >= 2:
             puentes.append((move, len(grupos_conectados) * 10))
     return puentes
+
+def es_posicion_valida(pos: tuple[int, int], size: int) -> bool:
+    """Verifica si una posición (fila, columna) está dentro del tablero."""
+    row, col = pos
+    return 0 <= row < size and 0 <= col < size
