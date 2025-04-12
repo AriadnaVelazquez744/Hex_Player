@@ -115,11 +115,7 @@ def evaluate_board(player_id: int, opponent_id: int, board: HexBoard, ds: Disjoi
     # 3. Fronteras activas (casillas vacías adyacentes a nuestras fichas)
     fronteras = np.sum(board_np == 0) / (size * size) * 10  # Normalizar
     
-    # 4. Penalizar dispersión (fichas aisladas)
-    densidad = np.mean(board_np == player_id) * 100 + 1e-5  # Evitar división por cero
-    dispersion = 1 / densidad
-    
-    return (direction_score * 0.5) + (puentes_score * 0.3) + (fronteras * 0.2) - dispersion
+    return (direction_score * 0.5) + (puentes_score * 0.3) + (fronteras * 0.05)
 
 
 def clonar_disjointset(ds_original: DisjointSet) -> DisjointSet:
