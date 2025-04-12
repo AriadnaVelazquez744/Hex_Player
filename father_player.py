@@ -1,4 +1,4 @@
-from hex_board import HexBoard
+from board import HexBoard
 
 # Definición de la clase base Player
 # Esta clase representa un jugador en el juego Hex.

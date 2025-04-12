@@ -57,42 +57,45 @@ def detect_and_block_imminent_win(board: HexBoard, ai_id: int, ds_opponent: Disj
         return (0, threat_moves[0])  # Único movimiento que permite bloquear
     return (1, None)  # No hay amenazas detectadas
 
-
-def strategic_direction(board: HexBoard, player_id: int, ds: DisjointSet) -> tuple[np.ndarray, np.ndarray]:
+def strategic_direction(board: HexBoard, opponent_id: int, ds: DisjointSet) -> tuple[np.ndarray, np.ndarray]:
     size = board.size
     grupos = list(ds.subsets())
     
-    if player_id == 1:
-        # Lógica existente para Jugador 1 (vertical)
-        target_top = any(any(i == 0 for (i, j) in grupo) for grupo in grupos)
-        target_bottom = any(any(i == size - 1 for (i, j) in grupo) for grupo in grupos)
-        
-        if target_top and not target_bottom:
-            distancias = np.arange(size)[:, np.newaxis]
-            pesos = np.linspace(1, 0, size)[:, np.newaxis] + 1
-        elif target_bottom and not target_top:
-            distancias = (size - 1 - np.arange(size))[:, np.newaxis]
-            pesos = np.linspace(0, 1, size)[:, np.newaxis] + 1
-        else:
-            centro = size // 2
-            distancias = np.abs(np.arange(size)[:, np.newaxis] - centro)
-            pesos = np.ones((size, size)) * 2
-    else:
-        # Jugador 2 (horizontal): priorizar izquierda y derecha
+    if opponent_id == 2:
+        # Jugador 1 (🔴): Conectar IZQUIERDA-DERECHA (horizontal)
         target_left = any(any(j == 0 for (i, j) in grupo) for grupo in grupos)
         target_right = any(any(j == size - 1 for (i, j) in grupo) for grupo in grupos)
         
         if target_left and not target_right:
-            # Expandir hacia la derecha
-            distancias = np.arange(size)[np.newaxis, :]
-            pesos = np.linspace(1, 0, size)[np.newaxis, :] + 1
+            # Priorizar expansión hacia la DERECHA (columnas altas)
+            distancias = (size - 1 - np.arange(size))[np.newaxis, :]  # Distancia inversa desde la izquierda
+            pesos = np.linspace(0, 1, size)[np.newaxis, :] + 1       # Penalizar menos las columnas derechas
         elif target_right and not target_left:
-            # Expandir hacia la izquierda
-            distancias = (size - 1 - np.arange(size))[np.newaxis, :]
-            pesos = np.linspace(0, 1, size)[np.newaxis, :] + 1
+            # Priorizar expansión hacia la IZQUIERDA (columnas bajas)
+            distancias = np.arange(size)[np.newaxis, :]               # Distancia desde la derecha
+            pesos = np.linspace(1, 0, size)[np.newaxis, :] + 1       # Penalizar menos las columnas izquierdas
         else:
+            # Centrarse en conectar ambos lados
             centro = size // 2
             distancias = np.abs(np.arange(size)[np.newaxis, :] - centro)
+            pesos = np.ones((size, size)) * 2
+    else:
+        # Jugador 2 (🔵): Conectar ARRIBA-ABAJO (vertical)
+        target_top = any(any(i == 0 for (i, j) in grupo) for grupo in grupos)
+        target_bottom = any(any(i == size - 1 for (i, j) in grupo) for grupo in grupos)
+        
+        if target_top and not target_bottom:
+            # Priorizar expansión hacia ABAJO (filas altas)
+            distancias = (size - 1 - np.arange(size))[:, np.newaxis]  # Distancia inversa desde arriba
+            pesos = np.linspace(0, 1, size)[:, np.newaxis] + 1        # Penalizar menos las filas inferiores
+        elif target_bottom and not target_top:
+            # Priorizar expansión hacia ARRIBA (filas bajas)
+            distancias = np.arange(size)[:, np.newaxis]               # Distancia desde abajo
+            pesos = np.linspace(1, 0, size)[:, np.newaxis] + 1       # Penalizar menos las filas superiores
+        else:
+            # Centrarse en conectar ambos extremos
+            centro = size // 2
+            distancias = np.abs(np.arange(size)[:, np.newaxis] - centro)
             pesos = np.ones((size, size)) * 2
 
     return distancias, pesos
