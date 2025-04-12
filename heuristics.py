@@ -10,13 +10,13 @@ def es_tablero_vacio(player_id, board: HexBoard) -> bool:
 
 def elegir_apertura(player_id: int, board: HexBoard, size: int) -> tuple[int, int]:
     aperturas = []
-    if player_id == 1:  # Jugador 1 (vertical: necesita conectar arriba-abajo)
+    if player_id == 2:  # Jugador 2 (vertical: necesita conectar arriba-abajo)
         aperturas = [
             (0, size//2),          # Centro del borde superior
             (size//2, size//2),    # Centro absoluto
             (size-1, size//2)      # Centro del borde inferior (solo si está vacío)
         ]
-    else:  # Jugador 2 (horizontal: conectar izquierda-derecha)
+    else:  # Jugador 1 (horizontal: conectar izquierda-derecha)
         aperturas = [
             (size//2, 0),          # Centro del borde izquierdo
             (size//2, size//2),    # Centro absoluto
@@ -27,7 +27,7 @@ def elegir_apertura(player_id: int, board: HexBoard, size: int) -> tuple[int, in
     return random.choice(valid_moves) if valid_moves else (size//2, size//2)
 
 
-def detect_and_block_imminent_win(board: HexBoard, ai_id: int, ds_opponent: DisjointSet) -> tuple[int, tuple | None]:
+def detect_and_block_imminent_win(board: HexBoard, ai_id: int) -> tuple[int, tuple | None]:
     """
     Heurística preventiva que detecta si el oponente está a una jugada de ganar.
     Retorna:
@@ -150,7 +150,7 @@ def obtener_disjointsets(board: HexBoard, player_id: int) -> DisjointSet:
             if board.board[i][j] == player_id:
                 for di, dj in [(-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0)]:
                     ni, nj = i + di, j + dj
-                    if es_posicion_valida((ni, nj), size) and board.board[ni][nj] == player_id:
+                    if valid_position((ni, nj), size) and board.board[ni][nj] == player_id:
                         ds.merge((i, j), (ni, nj))
     return ds
 
@@ -162,7 +162,7 @@ def detectar_puentes(board: HexBoard, player_id: int, ds: DisjointSet) -> list:
         for di, dj in [(-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0)]:
             ni, nj = move[0] + di, move[1] + dj
             # Verificar si la celda es del jugador y está en el DisjointSet
-            if es_posicion_valida((ni, nj), board.size) and board.board[ni][nj] == player_id:
+            if valid_position((ni, nj), board.size) and board.board[ni][nj] == player_id:
                 try:
                     grupos_conectados.add(ds.__getitem__((ni, nj)))
                 except KeyError:
@@ -177,10 +177,9 @@ def detectar_puentes(board: HexBoard, player_id: int, ds: DisjointSet) -> list:
                 score += 20
             puentes.append((move, score))
     
-
     return puentes
 
-def es_posicion_valida(pos: tuple[int, int], size: int) -> bool:
+def valid_position(pos: tuple[int, int], size: int) -> bool:
     """Verifica si una posición (fila, columna) está dentro del tablero."""
     row, col = pos
     return 0 <= row < size and 0 <= col < size

@@ -8,7 +8,7 @@ from father_player import Player
 import heuristics as h
 
 class AI_Player(Player):
-    def __init__(self, player_id: int, max_depth: int = 10, time_limit: float = 5.0):
+    def __init__(self, player_id: int, max_depth: int = 100, time_limit: float = 5.0):
         super().__init__(player_id)
         self.opponent_id = 3 - player_id  # Si eres 1, el oponente es 2; si eres 2, el oponente es 1
         self.max_depth = max_depth
@@ -37,8 +37,8 @@ class AI_Player(Player):
         ds_jugador = h.obtener_disjointsets(board, self.player_id)
         ds_oponente = h.obtener_disjointsets(board, self.opponent_id)
         
-        # Verificar amenazas inmediatas (usando ds_oponente)
-        threat_status, block_move = h.detect_and_block_imminent_win(board, self.player_id, ds_oponente)
+        # Verificar amenazas inmediatas
+        threat_status, block_move = h.detect_and_block_imminent_win(board, self.player_id)
         if threat_status == 0 or threat_status == -1:
             return block_move
 
@@ -106,9 +106,6 @@ class AI_Player(Player):
             if is_maximizing:
                 ds_clon = h.clonar_disjointset(ds_jugador)
                 ds_clon.add(move)
-                # Clonar y actualizar DisjointSet
-                ds_clon = h.clonar_disjointset(ds_jugador)
-                ds_clon.add(move)
                 for di, dj in [(-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0)]:
                     ni, nj = move[0] + di, move[1] + dj
                     if h.es_posicion_valida((ni, nj), new_board.size) and new_board.board[ni][nj] == self.player_id:
@@ -128,7 +125,7 @@ class AI_Player(Player):
                                     ds_clon if not is_maximizing else ds_oponente, 
                                     ordered_moves)
             
-            # Actualizar mejor valor y movimiento (solo en nivel raíz)
+            # Actualizar mejor valor y movimiento
             if is_maximizing:
                 if eval > best_val:
                     best_val = eval
