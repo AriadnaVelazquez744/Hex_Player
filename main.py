@@ -22,17 +22,29 @@ def main():
     # 3: IA vs IA
     mode = input("Seleccione modo de juego (1: Humano vs Humano, 2: Humano vs IA, 3: IA vs IA): ")
 
+    if mode == "2" or mode == "3":
+        while True:
+            try:
+                time_input = input("Tiempo máximo por jugada (segundos) [Predeterminado: 5.0]: ").strip()
+                time_limit = float(time_input) if time_input else 5.0  # Valor predeterminado si está vacío
+                if time_limit <= 0:
+                    raise ValueError
+                break
+            except ValueError:
+                print("Entrada inválida. Use un número positivo. Ejemplo: 3.5")
+
+
     if mode == "2":
         human_player = int(input("Elija su identificador (1 para 🔴, 2 para 🔵): "))
         ai_player = 2 if human_player == 1 else 1
         player_objects = {
             human_player: None,  # Humano: Él hace su propio input
-           ai_player: AI_Player(ai_player)
+           ai_player: AI_Player(ai_player, time_limit=time_limit)
         }
     elif mode == "3":
         player_objects = {
-            1: AI_Player(1),  # IA
-            2: AI_Player(2)   # IA
+            1: AI_Player(1, time_limit=time_limit),  # IA
+            2: AI_Player(2, time_limit=time_limit)   # IA
         }
     else:
         player_objects = {
