@@ -167,8 +167,17 @@ def detectar_puentes(board: HexBoard, player_id: int, ds: DisjointSet) -> list:
                     grupos_conectados.add(ds.__getitem__((ni, nj)))
                 except KeyError:
                     continue  # Ignorar celdas no registradas
+
+        # Puntuar según número de grupos conectados y proximidad a bordes
         if len(grupos_conectados) >= 2:
-            puentes.append((move, len(grupos_conectados) * 10))
+            score = 15 * len(grupos_conectados)
+            # Bonus por conexión entre bordes opuestos
+            if (player_id == 1 and move[1] in [0, board.size-1]) or \
+               (player_id == 2 and move[0] in [0, board.size-1]):
+                score += 20
+            puentes.append((move, score))
+    
+
     return puentes
 
 def es_posicion_valida(pos: tuple[int, int], size: int) -> bool:
