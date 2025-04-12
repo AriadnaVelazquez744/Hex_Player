@@ -3,6 +3,7 @@ from board import HexBoard
 import random
 import numpy as np
 from scipy.cluster.hierarchy import DisjointSet
+from scipy.signal import convolve2d
 
 def es_tablero_vacio(player_id, board: HexBoard) -> bool:
         return all(cell != player_id for row in board.board for cell in row)
@@ -114,8 +115,12 @@ def evaluate_board(player_id: int, opponent_id: int, board: HexBoard, ds: Disjoi
     
     # 3. Fronteras activas (casillas vacías adyacentes a nuestras fichas)
     fronteras = np.sum(board_np == 0) / (size * size) * 10  # Normalizar
+
+    # 4. Detección de patrones no lineales
+    kernel = np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]])  # Patrón diamante
+    expansion_score = np.sum(convolve2d(board_np == player_id, kernel, mode='same') * 0.2)
     
-    return (direction_score * 0.5) + (puentes_score * 0.3) + (fronteras * 0.05)
+    return (direction_score * 0.5) + (puentes_score * 0.3) + (fronteras * 0.05) + (expansion_score * 0.25)
 
 
 def clonar_disjointset(ds_original: DisjointSet) -> DisjointSet:
