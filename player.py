@@ -65,7 +65,7 @@ class AI_Player(Player):
             # Conectar con vecinos en el clon
             for di, dj in [(-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0)]:
                 ni, nj = move[0] + di, move[1] + dj
-                if h.es_posicion_valida((ni, nj), new_board.size) and new_board.board[ni][nj] == self.player_id:
+                if h.valid_position((ni, nj), new_board.size) and new_board.board[ni][nj] == self.player_id:
                     ds_clon.merge(move, (ni, nj))
             score = h.evaluate_board(self.player_id, self.opponent_id, new_board, ds_clon)
             scores.append((move, score))
@@ -108,14 +108,14 @@ class AI_Player(Player):
                 ds_clon.add(move)
                 for di, dj in [(-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0)]:
                     ni, nj = move[0] + di, move[1] + dj
-                    if h.es_posicion_valida((ni, nj), new_board.size) and new_board.board[ni][nj] == self.player_id:
+                    if h.valid_position((ni, nj), new_board.size) and new_board.board[ni][nj] == self.player_id:
                         ds_clon.merge(move, (ni, nj))
             else:
                 ds_clon = h.clonar_disjointset(ds_oponente)
                 ds_clon.add(move)
                 for di, dj in [(-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0)]:
                     ni, nj = move[0] + di, move[1] + dj
-                    if h.es_posicion_valida((ni, nj), new_board.size) and new_board.board[ni][nj] == self.opponent_id:
+                    if h.valid_position((ni, nj), new_board.size) and new_board.board[ni][nj] == self.opponent_id:
                         ds_clon.merge(move, (ni, nj))
                 
 
@@ -149,7 +149,7 @@ class AI_Player(Player):
         grupos_conectados = set()
         for di, dj in [(-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0)]:
             ni, nj = move[0] + di, move[1] + dj
-            if h.es_posicion_valida((ni, nj), board.size) and board.board[ni][nj] == player_id:
+            if h.valid_position((ni, nj), board.size) and board.board[ni][nj] == player_id:
                 try:
                     grupos_conectados.add(ds.__getitem__((ni, nj)))
                 except KeyError:
